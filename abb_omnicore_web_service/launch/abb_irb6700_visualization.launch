@@ -1,0 +1,12 @@
+<launch>
+    <!-- <arg name="json_path" default="/dev_ws/src/iaac_monitoring/q3d.json" /> -->
+
+    <rosparam command="load" file="$(find abb_irb6700_support)/config/joint_names_irb6700_150_320.yaml" />
+
+    <include file="$(find abb_irb6700_support)/launch/load_irb6700_150_320.launch" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+    <node name="abb_omnicore_web_service" pkg="abb_omnicore_web_service" type="webservice_node.py" output="screen" />
+    <!-- <node name="trajtory_display" pkg="abb_omnicore_web_service" type="visualize_geometry.py" output="screen" args="$(arg json_path)" /> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find abb_omnicore_web_service)/config/q3d.rviz" required="true" />
+</launch>       

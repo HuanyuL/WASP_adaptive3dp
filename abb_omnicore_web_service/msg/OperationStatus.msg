@@ -1,0 +1,2 @@
+string control_state
+string operation_mode
