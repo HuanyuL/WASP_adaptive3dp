@@ -132,7 +132,7 @@ RUN git clone https://github.com/microsoft/Azure_Kinect_ROS_Driver.git
 
 
 
-FROM kinect as bash
+FROM base as bash
 #------------------------------------------------------
 
 WORKDIR /dev_ws
