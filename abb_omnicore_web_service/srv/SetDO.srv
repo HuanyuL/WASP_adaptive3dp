@@ -1,4 +1,0 @@
-int8 pin_id
-int8 value
----
-bool success
