@@ -1,0 +1,3 @@
+<launch>
+    <node name="wasp_crane_web_service" pkg="wasp_crane_web_service" type="web_service_node.py" output="screen" />
+</launch>

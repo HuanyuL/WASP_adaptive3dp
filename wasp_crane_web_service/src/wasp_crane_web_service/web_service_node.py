@@ -40,6 +40,8 @@ class WebServiceNode:
         rospy.Service("/iaac_crane/set_flowrate", SetFlowrate, self.set_flowrate_cb)
 
     def run(self) -> None:
+        if not self._test_connection():
+            rospy.signal_shutdown("[IAAC CRANE WEB CLIENT]: Unable to reach the host")
         while not rospy.is_shutdown():
             filepos = self.retreive_job_progress()
             self.printer_pos_pub.publish(filepos)

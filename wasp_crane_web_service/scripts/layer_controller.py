@@ -8,12 +8,12 @@ class LayerController:
     def __init__(self):
         self.layer_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/width_error", Float64, self.layer_callback)
         self.deviation_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.deviation_callback)
-        self.flowrate_pub = rospy.Publisher("/iaac_crane/set_flowrate", Int8, queue_size=10)
+        self.feedrate_pub = rospy.Publisher("/iaac_crane/set_feedrate", Int8, queue_size=10)
         self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
-        self.default_flowrate = rospy.get_param("/iaac_crane/default_flowrate", 100)
+        self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
 
         self.step = rospy.get_param(
-            "/iaac_crane/layer_controller/threshold", 1
+            "/iaac_crane/layer_controller/threshold", 10
         )  # the changes of speed in rapid code in percetage
         self.kp = rospy.get_param("/iaac_crane/layer_controller/kp", 12)
 
@@ -24,7 +24,7 @@ class LayerController:
 
         self.deviation = False
 
-        self.previous_flowrate = None
+        self.previous_feedrate = None
         self.previous_feedrate = None
 
         self.rate = rospy.Rate(2)
@@ -34,10 +34,10 @@ class LayerController:
 
     def _init_service_proxies(self):
         rospy.wait_for_service("/iaac_crane/set_feedrate", timeout=5)
-        self.set_flowrate_srv = rospy.ServiceProxy("/iaac_robot/set_feedrate", SetFeedrate)
+        self.set_feedrate_srv = rospy.ServiceProxy("/iaac_robot/set_feedrate", SetFeedrate)
 
         rospy.wait_for_service("/iaac_cranet/set_flowrate", timeout=5)
-        self.set_feedrate_srv = rospy.ServiceProxy("/iaac_robot/set_flowrate", SetFlowrate)
+        self.set_flowrate_srv = rospy.ServiceProxy("/iaac_robot/set_feedrate", SetFlowrate)
 
     def layer_callback(self, data):
         self.width_error = data.data
@@ -46,8 +46,8 @@ class LayerController:
         while not rospy.is_shutdown():
             if self.width_error is not None:
                 rospy.loginfo("[IAAC LAYER CONTROLLER]: Layer controller running")
-                new_flowrate = self.speed_controller(
-                    self.default_flowrate,
+                new_feedrate = self.speed_controller(
+                    self.default_feedrate,
                     self.width_error,
                     self.kp,
                     self.step,
@@ -55,12 +55,12 @@ class LayerController:
                     self.speed_lower_limit,
                     self.deviation,
                 )
-                self.set_flowrate_srv(int(new_flowrate))
-                if self.previous_flowrate is not None:
-                    self.previous_speed_ratio = new_flowrate
-                    self.flowrate_pub.publish(int(new_flowrate))
+                self.set_feedrate_srv(int(new_feedrate))
+                if self.previous_feedrate is not None:
+                    self.previous_speed_ratio = new_feedrate
+                    self.feedrate_pub.publish(int(new_feedrate))
                 else:
-                    self.previous_speed_ratio = self.default_flowrate
+                    self.previous_speed_ratio = self.default_feedrate
             else:
                 rospy.loginfo("[IAAC LAYER CONTROLLER]: Waiting for data")
             self.rate.sleep()
@@ -72,24 +72,24 @@ class LayerController:
         rospy.loginfo("[IAAC LAYER CONTROLLER]: Layer controller shutting down")
 
     @staticmethod
-    def speed_controller(default_flowrate, error, kp, step, upper_limit, lower_limit, deviation):
+    def speed_controller(default_feedrate, error, kp, step, upper_limit, lower_limit, deviation):
 
         if deviation:
             if error > 0:
-                new_flowrate = min(default_flowrate + kp * abs(error), upper_limit)
+                new_feedrate = min(default_feedrate + kp * abs(error), upper_limit)
 
             elif error < 0:
-                new_flowrate = max(default_flowrate - kp * abs(error), lower_limit)
+                new_feedrate = max(default_feedrate - kp * abs(error), lower_limit)
         else:
-            new_flowrate = default_flowrate
+            new_feedrate = default_feedrate
 
-        rospy.loginfo(f"[IAAC LAYER CONTROLLER]: New flowrate = {new_flowrate}")
+        rospy.loginfo(f"[IAAC LAYER CONTROLLER]: New feedrate = {new_feedrate}")
 
         # Ensure the change is above the threshold
-        if abs(new_flowrate - default_flowrate) < step:
-            new_flowrate = default_flowrate
+        if abs(new_feedrate - default_feedrate) < step:
+            new_feedrate = default_feedrate
 
-        return new_flowrate
+        return new_feedrate
 
 
 if __name__ == "__main__":
