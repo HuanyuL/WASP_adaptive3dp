@@ -12,7 +12,7 @@ class GeometryVisualization:
         self.polyline_marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=10)
         self.error_marker_pub = rospy.Publisher("/error_marker", Marker, queue_size=10)
         # self.error_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.error_callback)
-        self.traj_path = rospy.get_param("~json_path", default="/dev_ws/src/iaac_monitoring/q3d.json")
+        self.traj_path = rospy.get_param("~json_path", default="/dev_ws/src/wasp_crane_web_service/waps_test.json")
         # self.error_positions = []
         self.rate = rospy.Rate(1)
         rospy.on_shutdown(self.shutdown)
@@ -23,7 +23,7 @@ class GeometryVisualization:
         return data
 
     def run(self):
-        data = self.load_points_from_json()
+        data = self.load_data_from_json()
         while not rospy.is_shutdown():
             marker_id = 0
             for polyline in data["polylines"]:
@@ -60,7 +60,7 @@ class GeometryVisualization:
             point = Point(pt["x"] / 1000, pt["y"] / 1000, pt["z"] / 1000)
             marker.points.append(point)
             normalized_z = self.normalize_value(pt["z"], min_z, max_z)
-            color = self.generate_color(normalized_z)
+            color = self.generate_gradient_color(normalized_z)
             marker.colors.append(color)
 
         return marker

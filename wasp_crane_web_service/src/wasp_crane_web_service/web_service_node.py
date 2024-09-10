@@ -22,7 +22,7 @@ class WebServiceNode:
         self.printer_pos_url = "http://{0}/api/printer/pos".format(self.host)
 
         self.printer_pos_pub = rospy.Publisher("/printer_pos", Int64, queue_size=10)
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(1)
         self._init_services()
 
     def _test_connection(self) -> bool:
