@@ -1,3 +1,3 @@
-int8 feedrate
+int8 new_feedrate
 ---
 bool success
