@@ -6,8 +6,12 @@ from wasp_crane_web_service.srv import SetFeedrate, SetFlowrate
 
 class LayerController:
     def __init__(self):
-        self.layer_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/width_error", Float64, self.layer_callback)
-        self.deviation_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.deviation_callback)
+        self.layer_sub = rospy.Subscriber(
+            "/iaac_monitoring/image_processing/results.width_error", Float64, self.layer_callback
+        )
+        self.deviation_sub = rospy.Subscriber(
+            "/iaac_monitoring/image_processing/results.deviation", Bool, self.deviation_callback
+        )
         self.feedrate_pub = rospy.Publisher("/iaac_crane/set_feedrate", Int8, queue_size=10)
         self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
         self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
@@ -19,8 +23,8 @@ class LayerController:
 
         self.width_error = None
 
-        self.speed_upper_limit = 150
-        self.speed_lower_limit = 30
+        self.speed_upper_limit = 40
+        self.speed_lower_limit = 10
 
         self.deviation = False
 
@@ -77,7 +81,6 @@ class LayerController:
         if deviation:
             if error > 0:
                 new_feedrate = min(default_feedrate + kp * abs(error), upper_limit)
-
             elif error < 0:
                 new_feedrate = max(default_feedrate - kp * abs(error), lower_limit)
         else:
