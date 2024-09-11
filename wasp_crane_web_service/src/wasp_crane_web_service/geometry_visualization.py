@@ -14,7 +14,7 @@ class GeometryVisualization:
         # self.error_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.error_callback)
         self.traj_path = rospy.get_param("~json_path", default="/dev_ws/src/wasp_crane_web_service/waps_test.json")
         # self.error_positions = []
-        self.rate = rospy.Rate(1)
+        self.rate = rospy.Rate(10)
         rospy.on_shutdown(self.shutdown)
 
     def load_data_from_json(self):
@@ -28,33 +28,36 @@ class GeometryVisualization:
             marker_id = 0
             for polyline in data["polylines"]:
                 points = polyline["points"]
-                self.polyline_marker_pub.publish(self.create_polyline_marker(points, marker_id))
+                layer_id = polyline["layer_id"][0]
+                self.polyline_marker_pub.publish(self.create_polyline_marker(points, marker_id, layer_id))
                 marker_id += 1
 
             self.rate.sleep()
 
-    def generate_gradient_color(normalized_z):
+    def generate_gradient_color(self, normalized_z):
         r = 0
         g = normalized_z * 0.9
         b = 1.0
-        return ColorRGBA(r, g, b, 1.0)
+        return ColorRGBA(1, 0, b, 1.0)
 
-    def create_polyline_marker(self, points, marker_id):
+    def create_polyline_marker(self, points, marker_id, layer_id):
         marker = Marker()
         marker.header = Header()
-        marker.header.frame_id = "base_link"
+        marker.header.frame_id = "map"
         marker.header.stamp = rospy.Time.now()
-        marker.ns = "tool_path"
+        marker.ns = "tool_path_layer_" + str(layer_id)
         marker.id = marker_id
         marker.type = Marker.LINE_STRIP
         marker.action = Marker.ADD
         marker.pose.orientation.w = 1.0
         marker.scale.x = 0.005  # Size of the points
 
-        z_values = [p["z"] for p in points]
+        z_values = [pt["z"] for pt in points]
 
         min_z = min(z_values)
         max_z = max(z_values)
+
+        # print(min_z, max_z)
 
         for pt in points:
             point = Point(pt["x"] / 1000, pt["y"] / 1000, pt["z"] / 1000)
