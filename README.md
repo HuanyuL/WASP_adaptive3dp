@@ -64,3 +64,4 @@ roslaunch wasp_crane_web_service web_service.launch
 Foxglove studio should run in your machine instead of container, chose the ROS1 display and import the template from the ``wasp_crane_monitor.json``
 
 ### License
+This project is licensed under the [MIT License](./LICENSE).
