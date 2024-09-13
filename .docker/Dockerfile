@@ -93,45 +93,6 @@ RUN apt-key adv \
 WORKDIR /dev_ws/src
 RUN git clone https://github.com/rjwb1/realsense-ros.git
 
-FROM base as kinect
-#------------------------------------------------------
-
-RUN curl -sSL https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/libk/libk4a1.4/libk4a1.4_1.4.1_amd64.deb > /tmp/libk4a1.4_1.4.1_amd64.deb
-RUN curl -sSL https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/libk/libk4a1.4-dev/libk4a1.4-dev_1.4.1_amd64.deb > /tmp/libk4a1.4-dev_1.4.1_amd64.deb
-RUN curl -sSL https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/libk/libk4abt1.1/libk4abt1.1_1.1.2_amd64.deb > /tmp/libk4abt1.1_1.1.2_amd64.deb
-RUN curl -sSL https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/libk/libk4abt1.1-dev/libk4abt1.1-dev_1.1.2_amd64.deb > /tmp/libk4abt1.1-dev_1.1.2_amd64.deb
-RUN curl -sSL https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/k/k4a-tools/k4a-tools_1.4.1_amd64.deb > /tmp/k4a-tools_1.4.1_amd64.deb
-RUN echo 'libk4a1.4 libk4a1.4/accepted-eula-hash string 0f5d5c5de396e4fee4c0753a21fee0c1ed726cf0316204edda484f08cb266d76' | debconf-set-selections
-RUN echo 'libk4abt1.1	libk4abt1.1/accepted-eula-hash	string	03a13b63730639eeb6626d24fd45cf25131ee8e8e0df3f1b63f552269b176e38' | debconf-set-selections
-RUN dpkg -i /tmp/libk4a1.4_1.4.1_amd64.deb
-RUN dpkg -i /tmp/libk4a1.4-dev_1.4.1_amd64.deb
-RUN dpkg -i /tmp/libk4abt1.1_1.1.2_amd64.deb
-RUN dpkg -i /tmp/libk4abt1.1-dev_1.1.2_amd64.deb
-RUN apt-get update
-RUN apt-get install -y libsoundio1
-RUN dpkg -i /tmp/k4a-tools_1.4.1_amd64.deb
-# fix k4abtConfig.cmake Error: Azure Kinect SDK Version numbers contain exactly 3 components
-RUN sed -i 's/find_dependency(k4a 1.4 REQUIRED)/find_dependency(k4a 1.4.1 REQUIRED)/' /usr/lib/cmake/k4abt/k4abtConfig.cmake
-
-RUN pip3 install --no-cache-dir --upgrade pyk4a
-
-RUN apt-get update && apt-get install -y --no-install-recommends\
-    ros-$ROS_DISTRO-image-geometry \
-    ros-$ROS_DISTRO-image-transport-plugins \
-    ros-$ROS_DISTRO-camera-info-manager \
-    ros-$ROS_DISTRO-xacro \
-    ros-$ROS_DISTRO-rgbd-launch \
-    ros-$ROS_DISTRO-joint-state-publisher \
-    ros-$ROS_DISTRO-robot-state-publisher \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
-WORKDIR /dev_ws/src
-RUN git clone https://github.com/microsoft/Azure_Kinect_ROS_Driver.git
-
-
-
-
 FROM base as bash
 #------------------------------------------------------
 
