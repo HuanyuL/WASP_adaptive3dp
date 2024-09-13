@@ -12,7 +12,9 @@ class GeometryVisualization:
         self.polyline_marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=10)
         self.error_marker_pub = rospy.Publisher("/error_marker", Marker, queue_size=10)
         # self.error_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.error_callback)
-        self.traj_path = rospy.get_param("~json_path", default="/dev_ws/src/wasp_crane_web_service/waps_test.json")
+        self.traj_path = rospy.get_param(
+            "~json_path", default="/dev_ws/src/wasp_crane_webservice/wasp_crane_web_service/wasp_onsite.json"
+        )
         # self.error_positions = []
         self.rate = rospy.Rate(10)
         rospy.on_shutdown(self.shutdown)
@@ -50,7 +52,7 @@ class GeometryVisualization:
         marker.type = Marker.LINE_STRIP
         marker.action = Marker.ADD
         marker.pose.orientation.w = 1.0
-        marker.scale.x = 0.005  # Size of the points
+        marker.scale.x = 0.01  # Size of the points
 
         z_values = [pt["z"] for pt in points]
 

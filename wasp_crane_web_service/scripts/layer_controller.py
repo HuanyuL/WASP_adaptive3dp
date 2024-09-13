@@ -6,15 +6,11 @@ from wasp_crane_web_service.srv import SetFeedrate, SetFlowrate
 
 class LayerController:
     def __init__(self):
-        self.layer_sub = rospy.Subscriber(
-            "/iaac_monitoring/image_processing/results.width_error", Float64, self.layer_callback
-        )
-        self.deviation_sub = rospy.Subscriber(
-            "/iaac_monitoring/image_processing/results.deviation", Bool, self.deviation_callback
-        )
-        self.feedrate_pub = rospy.Publisher("/iaac_crane/set_feedrate", Int8, queue_size=10)
-        self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
-        self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
+        self.layer_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/width_error", Float64, self.layer_callback)
+        self.deviation_sub = rospy.Subscriber("/iaac_monitoring/pixel_space/deviation", Bool, self.deviation_callback)
+        self.feedrate_pub = rospy.Publisher("/iaac_crane/feedrate", Int8, queue_size=1)
+        self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 15)
+        # self.default_feedrate = rospy.get_param("/iaac_crane/default_feedrate", 100)
 
         self.step = rospy.get_param(
             "/iaac_crane/layer_controller/threshold", 10
@@ -23,8 +19,8 @@ class LayerController:
 
         self.width_error = None
 
-        self.speed_upper_limit = 40
-        self.speed_lower_limit = 10
+        self.speed_upper_limit = 60
+        self.speed_lower_limit = 20
 
         self.deviation = False
 
@@ -38,10 +34,10 @@ class LayerController:
 
     def _init_service_proxies(self):
         rospy.wait_for_service("/iaac_crane/set_feedrate", timeout=5)
-        self.set_feedrate_srv = rospy.ServiceProxy("/iaac_robot/set_feedrate", SetFeedrate)
+        self.set_feedrate_srv = rospy.ServiceProxy("/iaac_crane/set_feedrate", SetFeedrate)
 
-        rospy.wait_for_service("/iaac_cranet/set_flowrate", timeout=5)
-        self.set_flowrate_srv = rospy.ServiceProxy("/iaac_robot/set_feedrate", SetFlowrate)
+        rospy.wait_for_service("/iaac_crane/set_flowrate", timeout=5)
+        self.set_flowrate_srv = rospy.ServiceProxy("/iaac_crane/set_feedrate", SetFlowrate)
 
     def layer_callback(self, data):
         self.width_error = data.data
@@ -62,7 +58,10 @@ class LayerController:
                 self.set_feedrate_srv(int(new_feedrate))
                 if self.previous_feedrate is not None:
                     self.previous_speed_ratio = new_feedrate
-                    self.feedrate_pub.publish(int(new_feedrate))
+                    # pubulish the new feedrate
+                    msg = Int8()
+                    msg.data = new_feedrate
+                    self.feedrate_pub.publish(msg)
                 else:
                     self.previous_speed_ratio = self.default_feedrate
             else:
